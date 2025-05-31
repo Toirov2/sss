@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uzum Market</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+            padding-bottom: 1rem;
+        }
+
+        header {
+            background-color: #6b21a8;
+            color: white;
+            padding: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-nav button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+
+        .header-nav button:hover {
+            background-color: #5a189a;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-bar input {
+            padding: 0.4rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            width: 500px;
+            background-color: #fff;
+            color: #333;
+        }
+
+        .back-button {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin: 1rem;
+            display: none;
+        }
+
+        .back-button:hover {
+            background-color: #cc3333;
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+            padding: 1rem;
+        }
+
+        .product {
+            border: 1px solid #ddd;
+            padding: 0.8rem;
+            text-align: center;
+            border-radius: 6px;
+            transition: transform 0.2s ease;
+        }
+
+        .product:hover {
+            transform: scale(1.05);
+        }
+
+        .product img {
+            max-width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .product h3 {
+            margin: 0.4rem 0;
+            font-size: 1rem;
+        }
+
+        .product p {
+            color: #555;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .product button {
+            background-color: #6b21a8;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .product button:hover {
+            background-color: #5a189a;
+        }
+
+        .cart-overlay, .checkout-overlay, .receipt-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .categories-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100%;
+            background: white;
+            padding: 1.5rem;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .categories-overlay.active {
+            transform: translateX(0);
+        }
+
+        .cart-content, .categories-content, .checkout-content, .receipt-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .categories-content {
+            background: none;
+            width: 100%;
+            max-width: none;
+        }
+
+        .cart-content h2, .categories-content h2, .checkout-content h2, .receipt-content h2 {
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        .cart-content ul, .categories-content ul, .receipt-content ul {
+            list-style: none;
+            margin-bottom: 0.8rem;
+        }
+
+        .cart-content li, .categories-content li, .receipt-content li {
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .categories-content a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .categories-content a:hover {
+            color: #6b21a8;
+        }
+
+        .close-cart {
+            position: absolute;
+            top: 0.8rem;
+            right: 0.8rem;
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.4rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .checkout-content form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .checkout-content label {
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .checkout-content input, .checkout-content select {
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .checkout-content .card-details {
+            display: none;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .checkout-content button[type="submit"] {
+            background-color: #6b21a8;
+            color: white;
+            border: none;
+            padding: 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .checkout-content button[type="submit"]:hover {
+            background-color: #5a189a;
+        }
+
+        .receipt-content p {
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .receipt-content button {
+            background-color: #6b21a8;
+            color: white;
+            border: none;
+            padding: 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 100%;
+            margin-top: 0.8rem;
+        }
+
+        .receipt-content button:hover {
+            background-color: #5a189a;
+        }
+
+        footer {
+            background-color: #f8f8f8;
+            color: #333;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            position: relative;
+        }
+
+        .footer-info {
+            font-size: 0.8rem;
+        }
+
+        .footer-info p {
+            margin: 0.3rem 0;
+        }
+
+        .footer-info a {
+            color: #6b21a8;
+            text-decoration: none;
+        }
+
+        .footer-info a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                min-height: 100vh;
+            }
+
+            header {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.6rem;
+                gap: 0.5rem;
+            }
+
+            header h1 {
+                font-size: 1rem;
+            }
+
+            .search-bar input {
+                width: 150px;
+                font-size: 0.8rem;
+            }
+
+            .header-nav {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .header-nav button {
+                font-size: 0.8rem;
+                padding: 0.3rem;
+            }
+
+            .cart-badge {
+                top: -6px;
+                right: -6px;
+                padding: 0.15rem 0.4rem;
+                font-size: 0.6rem;
+            }
+
+            .back-button {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.6rem;
+                margin: 0.8rem;
+            }
+
+            .products {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.6rem;
+                padding: 0.8rem;
+                justify-content: space-between;
+            }
+
+            .product {
+                flex: 0 0 calc(50% - 0.3rem);
+                max-width: calc(50% - 0.3rem);
+            }
+
+            .product img {
+                height: 100px;
+            }
+
+            .product h3 {
+                font-size: 0.9rem;
+            }
+
+            .product p {
+                font-size: 0.8rem;
+            }
+
+            .product button {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            .cart-content, .categories-content, .checkout-content, .receipt-content {
+                max-width: 300px;
+            }
+
+            .cart-content h2, .categories-content h2, .checkout-content h2, .receipt-content h2 {
+                font-size: 1rem;
+            }
+
+            .cart-content li, .categories-content li, .receipt-content li {
+                font-size: 0.8rem;
+            }
+
+            .checkout-content label, .checkout-content input, .checkout-content select {
+                font-size: 0.8rem;
+            }
+
+            .receipt-content p {
+                font-size: 0.8rem;
+            }
+
+            .close-cart {
+                padding: 0.3rem;
+                font-size: 0.7rem;
+            }
+
+            footer {
+                padding: 0.6rem;
+            }
+
+            .footer-info {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (hover: none) {
+            .product:hover, .product button:hover, .header-nav button:hover {
+                transform: none;
+                background-color: initial;
+            }
+
+            .product button:active, .header-nav button:active {
+                background-color: #5a189a;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Uzum Market</h1>
+        <div class="search-bar">
+            <input type="text" placeholder="Mahsulot qidirish..." id="search-input">
+        </div>
+        <div class="header-nav">
+            <button onclick="openCategories()"><span>📋</span> Kategoriyalar</button>
+            <button onclick="openCheckout()"><span>🛒</span> SAVAT <span id="cart-badge" class="cart-badge" style="display: none;">0</span></button>
+            <button onclick="window.location.href='/profil'"><span>👤</span> Profil</button>
+        </div>
+    </header>
+    <main>
+        <button class="back-button" id="back-button" onclick="showAllProducts()">Orqaga</button>
+        <section class="products" id="products">
+            <div class="product" data-category="elektronika">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 1">
+                <h3>Smartfon</h3>
+                <p>Narxi: 2,500,000 so'm</p>
+                <button onclick="addToCart('Smartfon', 2500000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="elektronika">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 2">
+                <h3>Noutbuk</h3>
+                <p>Narxi: 7,000,000 so'm</p>
+                <button onclick="addToCart('Noutbuk', 7000000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="elektronika">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 3">
+                <h3>Quloqchin</h3>
+                <p>Narxi: 250,000 so'm</p>
+                <button onclick="addToCart('Quloqchin', 250000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="elektronika">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 4">
+                <h3>Televizor</h3>
+                <p>Narxi: 4,500,000 so'm</p>
+                <button onclick="addToCart('Televizor', 4500000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="kiyim-kechak">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 5">
+                <h3>Ayollar ko‘ylagi</h3>
+                <p>Narxi: 350,000 so'm</p>
+                <button onclick="addToCart('Ayollar ko‘ylagi', 350000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="kiyim-kechak">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 6">
+                <h3>Erkaklar krossovkasi</h3>
+                <p>Narxi: 600,000 so'm</p>
+                <button onclick="addToCart('Erkaklar krossovkasi', 600000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="uy-jihozlari">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 7">
+                <h3>Muzlatgich</h3>
+                <p>Narxi: 3,200,000 so'm</p>
+                <button onclick="addToCart('Muzlatgich', 3200000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="uy-jihozlari">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 8">
+                <h3>Stol lampasi</h3>
+                <p>Narxi: 150,000 so'm</p>
+                <button onclick="addToCart('Stol lampasi', 150000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="sport">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 9">
+                <h3>Fitness bilaguzuk</h3>
+                <p>Narxi: 400,000 so'm</p>
+                <button onclick="addToCart('Fitness bilaguzuk', 400000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="oziq-ovqat">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 10">
+                <h3>Nonushta donlari</h3>
+                <p>Narxi: 50,000 so'm</p>
+                <button onclick="addToCart('Nonushta donlari', 50000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="gozallik">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 11">
+                <h3>Parfyum</h3>
+                <p>Narxi: 800,000 so'm</p>
+                <button onclick="addToCart('Parfyum', 800000)">SAVATGA QO'SHISH</button>
+            </div>
+            <div class="product" data-category="oyinchoqlar">
+                <img src="https://via.placeholder.com/120" alt="Mahsulot 12">
+                <h3>Bolalar o‘yinchog‘i</h3>
+                <p>Narxi: 200,000 so'm</p>
+                <button onclick="addToCart('Bolalar o‘yinchog‘i', 200000)">SAVATGA QO'SHISH</button>
+            </div>
+        </section>
+        <div class="cart-overlay" id="cart-overlay">
+            <div class="cart-content">
+                <h2>SAVAT</h2>
+                <ul id="cart-items"></ul>
+                <p>Jami: <span id="cart-total">0 so'm</span></p>
+                <button class="close-cart" onclick="closeCart()">Yopish</button>
+            </div>
+        </div>
+        <div class="checkout-overlay" id="checkout-overlay">
+            <div class="checkout-content">
+                <h2>BUYURTMA BERISH</h2>
+                <form id="checkout-form">
+                    <label for="first-name">Ism:</label>
+                    <input type="text" id="first-name" required>
+                    <label for="last-name">Familiya:</label>
+                    <input type="text" id="last-name" required>
+                    <label for="phone">Telefon raqami:</label>
+                    <input type="tel" id="phone" required>
+                    <label for="sms-code">SMS kod (4 raqamli):</label>
+                    <input type="text" id="sms-code" maxlength="4" required>
+                    <label for="payment-method">To‘lov usuli:</label>
+                    <select id="payment-method" required>
+                        <option value="cash">Naqd</option>
+                        <option value="card">Karta</option>
+                    </select>
+                    <div class="card-details" id="card-details">
+                        <label for="card-number">Karta raqami (16 raqam):</label>
+                        <input type="text" id="card-number" maxlength="16">
+                        <label for="card-expiry">Amal qilish muddati (MM/YY):</label>
+                        <input type="text" id="card-expiry" placeholder="MM/YY">
+                    </div>
+                    <button type="submit">Buyurtma berish</button>
+                </form>
+                <button class="close-cart" onclick="closeCheckout()">Yopish</button>
+            </div>
+        </div>
+        <div class="receipt-overlay" id="receipt-overlay">
+            <div class="receipt-content">
+                <h2>CHEK</h2>
+                <p><strong>Mijoz:</strong> <span id="receipt-name"></span></p>
+                <p><strong>Telefon:</strong> <span id="receipt-phone"></span></p>
+                <p><strong>To‘lov usuli:</strong> <span id="receipt-payment"></span></p>
+                <h3>Mahsulotlar:</h3>
+                <ul id="receipt-items"></ul>
+                <p><strong>Jami:</strong> <span id="receipt-total"></span></p>
+                <button onclick="closeReceipt()">Yopish</button>
+            </div>
+        </div>
+        <div class="categories-overlay" id="categories-overlay">
+            <div class="categories-content">
+                <h2>Kategoriyalar</h2>
+                <ul>
+                    <li><a onclick="filterCategory('elektronika')">Elektronika</a></li>
+                    <li><a onclick="filterCategory('kiyim-kechak')">Kiyim-kechak</a></li>
+                    <li><a onclick="filterCategory('uy-jihozlari')">Uy-ro‘zg‘or buyumlari</a></li>
+                    <li><a onclick="filterCategory('sport')">Sport anjomlari</a></li>
+                    <li><a onclick="filterCategory('oziq-ovqat')">Oziq-ovqat</a></li>
+                    <li><a onclick="filterCategory('gozallik')">Go‘zallik va sog‘liq</a></li>
+                    <li><a onclick="filterCategory('oyinchoqlar')">O‘yinchoqlar</a></li>
+                </ul>
+                <button class="close-cart" onclick="closeCategories()">Yopish</button>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-info">
+            <p>© 2025 Uzum Market. Barcha huquqlar himoyalangan.</p>
+            <p>Aloqa: <a href="mailto:support@uzummarket.uz">support@uzummarket.uz</a></p>
+            <p>Ish vaqti: Dushanba-Shanba, 09:00 - 18:00</p>
+        </div>
+    </footer>
+    <script>
+        let cart = [];
+        let total = 0;
+        let generatedSmsCode = null;
+
+        function addToCart(productName, price) {
+            const existingItem = cart.find(item => item.name === productName);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ name: productName, price: price, quantity: 1 });
+            }
+            total += price;
+            updateCart();
+            updateCartBadge();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            cartItems.innerHTML = '';
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} (x${item.quantity}): ${(item.price * item.quantity).toLocaleString()} so'm`;
+                cartItems.appendChild(li);
+            });
+            cartTotal.textContent = `${total.toLocaleString()} so'm`;
+        }
+
+        function updateCartBadge() {
+            const cartBadge = document.getElementById('cart-badge');
+            const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartBadge.textContent = itemCount;
+            cartBadge.style.display = itemCount > 0 ? 'block' : 'none';
+        }
+
+        function openCart() {
+            if (cart.length === 0) {
+                alert('Savat bo‘sh!');
+                return;
+            }
+            document.getElementById('cart-overlay').style.display = 'flex';
+            updateCart();
+        }
+
+        function closeCart() {
+            document.getElementById('cart-overlay').style.display = 'none';
+        }
+
+        function openCheckout() {
+            if (cart.length === 0) {
+                alert('Savat bo‘sh!');
+                return;
+            }
+            document.getElementById('checkout-overlay').style.display = 'flex';
+        }
+
+        function closeCheckout() {
+            document.getElementById('checkout-overlay').style.display = 'none';
+            generatedSmsCode = null;
+            document.getElementById('sms-code').value = '';
+        }
+
+        function openReceipt() {
+            document.getElementById('receipt-overlay').style.display = 'flex';
+        }
+
+        function closeReceipt() {
+            document.getElementById('receipt-overlay').style.display = 'none';
+            cart = [];
+            total = 0;
+            updateCart();
+            updateCartBadge();
+        }
+
+        function openCategories() {
+            const categoriesOverlay = document.getElementById('categories-overlay');
+            categoriesOverlay.style.display = 'block';
+            categoriesOverlay.classList.add('active');
+        }
+
+        function closeCategories() {
+            const categoriesOverlay = document.getElementById('categories-overlay');
+            categoriesOverlay.classList.remove('active');
+            setTimeout(() => {
+                categoriesOverlay.style.display = 'none';
+            }, 300);
+        }
+
+        function filterCategory(category) {
+            const products = document.querySelectorAll('.product');
+            products.forEach(product => {
+                product.style.display = product.dataset.category === category ? 'block' : 'none';
+            });
+            document.getElementById('back-button').style.display = 'block';
+            closeCategories();
+        }
+
+        function showAllProducts() {
+            const products = document.querySelectorAll('.product');
+            products.forEach(product => {
+                product.style.display = 'block';
+            });
+            document.getElementById('back-button').style.display = 'none';
+            document.getElementById('search-input').value = '';
+        }
+
+        function searchProducts() {
+            const searchInput = document.getElementById('search-input').value.toLowerCase();
+            const products = document.querySelectorAll('.product');
+            let hasResults = false;
+            products.forEach(product => {
+                const productName = product.querySelector('h3').textContent.toLowerCase();
+                const startsWithInput = searchInput ? productName.startsWith(searchInput[0]) : true;
+                if (startsWithInput) {
+                    product.style.display = 'block';
+                    hasResults = true;
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+            document.getElementById('back-button').style.display = searchInput ? 'block' : 'none';
+        }
+
+        document.getElementById('search-input').addEventListener('input', searchProducts);
+
+        document.getElementById('phone').addEventListener('blur', function() {
+            if (this.value && !generatedSmsCode) {
+                generatedSmsCode = Math.floor(1000 + Math.random() * 9000);
+                alert(`SMS kod: ${generatedSmsCode}`);
+            }
+        });
+
+        document.getElementById('payment-method').addEventListener('change', function() {
+            const cardDetails = document.getElementById('card-details');
+            if (this.value === 'card') {
+                cardDetails.style.display = 'flex';
+                document.getElementById('card-number').required = true;
+                document.getElementById('card-expiry').required = true;
+            } else {
+                cardDetails.style.display = 'none';
+                document.getElementById('card-number').required = false;
+                document.getElementById('card-expiry').required = false;
+            }
+        });
+
+        document.getElementById('checkout-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const phone = document.getElementById('phone').value;
+            const smsCode = document.getElementById('sms-code').value;
+            const paymentMethod = document.getElementById('payment-method').value;
+            let cardNumber = '';
+            let cardExpiry = '';
+            if (paymentMethod === 'card') {
+                cardNumber = document.getElementById('card-number').value;
+                cardExpiry = document.getElementById('card-expiry').value;
+            }
+            if (smsCode != generatedSmsCode) {
+                alert('Noto‘g‘ri SMS kod kiritildi!');
+                return;
+            }
+            closeCheckout();
+            document.getElementById('receipt-name').textContent = `${firstName} ${lastName}`;
+            document.getElementById('receipt-phone').textContent = phone;
+            document.getElementById('receipt-payment').textContent = paymentMethod === 'cash' ? 'Naqd' : `Karta (**** ${cardNumber.slice(-4)}, ${cardExpiry})`;
+            const receiptItems = document.getElementById('receipt-items');
+            receiptItems.innerHTML = '';
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} (x${item.quantity}): ${(item.price * item.quantity).toLocaleString()} so'm`;
+                receiptItems.appendChild(li);
+            });
+            document.getElementById('receipt-total').textContent = `${total.toLocaleString()} so'm`;
+            openReceipt();
+            console.log({
+                firstName,
+                lastName,
+                phone,
+                smsCode,
+                paymentMethod,
+                cardNumber,
+                cardExpiry,
+                cart,
+                total
+            });
+        });
+    </script>
+</body>
+</html>
